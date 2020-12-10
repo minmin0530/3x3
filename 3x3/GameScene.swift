@@ -14,6 +14,9 @@ class Stage {
     var goalFrame = Stage.FRAME
     var start = false
 
+    var sprite: SKSpriteNode?
+//    var sprite2: SKSpriteNode?
+
     var pointLabelEnemy = SKLabelNode(text: "0")
     var pointLabelTeam = SKLabelNode(text: "0")
     var pointLabel = SKLabelNode(text: "vs")
@@ -24,10 +27,19 @@ class Stage {
         pointLabelTeam.setScale(3.0)
         pointLabelEnemy.setScale(3.0)
     }
+    func setBackground(width: CGFloat, height: CGFloat) {
+        
+        sprite = SKSpriteNode(texture: SKTexture(imageNamed: "background"), size: CGSize(width: width, height: height) )
+        sprite!.zPosition = -1
+//        sprite2 = SKSpriteNode(texture: SKTexture(imageNamed: "background"), size: CGSize(width: width, height: height) )
+//        sprite2!.zPosition = -1
+//        sprite2!.position.y = height
+
+    }
 }
 class Object {
     static let FRAME = 100
-    static let RANGE: CGFloat = 50
+    static let RANGE: CGFloat = 75
     static let DURATION: CGFloat = 0.97
     var sprite: SKSpriteNode?
     var animation = false
@@ -59,7 +71,7 @@ class Enemy: Object {
     override init() {
         super.init()
         sprite = SKSpriteNode(imageNamed: "dragonRight")
-        sprite?.setScale(0.06)
+        sprite?.setScale(0.09)
     }
     override func setPosition(x: CGFloat, y: CGFloat) {
         sprite?.position.x = x
@@ -97,8 +109,8 @@ class Player: Object {
     override init() {
         super.init()
         sprite = SKSpriteNode(imageNamed: "dragon2")
-        sprite?.setScale(0.04)
-        origin.setScale(0.04)
+        sprite?.setScale(0.06)
+        origin.setScale(0.06)
     }
     override func setPosition(x: CGFloat, y: CGFloat) {
         sprite?.position.x = x
@@ -112,7 +124,7 @@ class Ball: Object {
     override init() {
         super.init()
         sprite = SKSpriteNode(imageNamed: "ball")
-        sprite?.setScale(0.25)
+        sprite?.setScale(0.375)
     }
     override func setPosition(x: CGFloat, y: CGFloat) {
         sprite?.position.x = x
@@ -169,7 +181,6 @@ class GameScene: SKScene {
 //        }
 
         initilize()
-        
         for player in team {
             addChild(player.sprite!)
             addChild(player.origin)
@@ -181,11 +192,16 @@ class GameScene: SKScene {
         addChild(stage.pointLabelEnemy)
         addChild(stage.pointLabelTeam)
         addChild(stage.pointLabel)
+        
+        addChild(stage.sprite!)
+//        addChild(stage.sprite2!)
+
     }
     
     func initilize() {
         stage.pointLabelTeam.position.y = -100
         stage.pointLabelEnemy.position.y = 100
+        stage.setBackground(width: view!.bounds.width * 2, height: view!.bounds.height * 2)
         ball.speedX = 0.0
         ball.speedY = 0.0
         ball.sprite?.position.x = 0
