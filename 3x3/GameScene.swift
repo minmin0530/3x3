@@ -12,6 +12,7 @@ class Stage {
     static let FRAME = 50
     var goal = false
     var goalFrame = Stage.FRAME
+    var start = false
 
     var pointLabelEnemy = SKLabelNode(text: "0")
     var pointLabelTeam = SKLabelNode(text: "0")
@@ -26,7 +27,7 @@ class Stage {
 }
 class Object {
     static let FRAME = 100
-    static let RANGE: CGFloat = 100
+    static let RANGE: CGFloat = 50
     static let DURATION: CGFloat = 0.97
     var sprite: SKSpriteNode?
     var animation = false
@@ -53,14 +54,41 @@ class Object {
     }
 }
 class Enemy: Object {
+    static let MOVE_ANIMATION_FRAME = 200
+    var moveAnimationFrame = Enemy.MOVE_ANIMATION_FRAME
     override init() {
         super.init()
         sprite = SKSpriteNode(imageNamed: "dragonRight")
-        sprite?.setScale(0.12)
+        sprite?.setScale(0.06)
     }
     override func setPosition(x: CGFloat, y: CGFloat) {
         sprite?.position.x = x
         sprite?.position.y = y
+    }
+    func moveAnimation1Slide() {
+        if moveAnimationFrame > Enemy.MOVE_ANIMATION_FRAME / 4 * 3 || moveAnimationFrame <= Enemy.MOVE_ANIMATION_FRAME / 4 * 1 {
+            sprite?.position.x += 2
+            moveAnimationFrame -= 1
+        } else if moveAnimationFrame <= Enemy.MOVE_ANIMATION_FRAME / 4 * 3 &&
+                    moveAnimationFrame > Enemy.MOVE_ANIMATION_FRAME / 4 * 1 {
+            sprite?.position.x -= 2
+            moveAnimationFrame -= 1
+        }
+        if moveAnimationFrame <= 0 {
+            moveAnimationFrame = Enemy.MOVE_ANIMATION_FRAME
+        }
+    }
+    func moveAnimation2Circle(currentTime: TimeInterval) {
+        sprite?.position.x += CGFloat(cos(currentTime * 2) * 5 )
+        sprite?.position.y += CGFloat(sin(currentTime * 2) * 3 )
+    }
+    func moveAnimation3Tracking(pos: CGPoint) {
+        let x = (pos.x - sprite!.position.x)
+        let y = (pos.y - sprite!.position.y)
+        if x * x + y * y > 20000 {
+            sprite?.position.x += x / 100
+            sprite?.position.y += y / 100
+        }
     }
 }
 class Player: Object {
@@ -69,8 +97,8 @@ class Player: Object {
     override init() {
         super.init()
         sprite = SKSpriteNode(imageNamed: "dragon2")
-        sprite?.setScale(0.08)
-        origin.setScale(0.08)
+        sprite?.setScale(0.04)
+        origin.setScale(0.04)
     }
     override func setPosition(x: CGFloat, y: CGFloat) {
         sprite?.position.x = x
@@ -84,7 +112,7 @@ class Ball: Object {
     override init() {
         super.init()
         sprite = SKSpriteNode(imageNamed: "ball")
-        sprite?.setScale(0.5)
+        sprite?.setScale(0.25)
     }
     override func setPosition(x: CGFloat, y: CGFloat) {
         sprite?.position.x = x
@@ -170,6 +198,10 @@ class GameScene: SKScene {
         enemys[0].setPosition(x: 0, y: 200)
         enemys[1].setPosition(x: -200, y: 400)
         enemys[2].setPosition(x: 200, y: 400)
+        enemys[0].moveAnimationFrame = Enemy.MOVE_ANIMATION_FRAME
+        enemys[1].moveAnimationFrame = Enemy.MOVE_ANIMATION_FRAME
+        enemys[2].moveAnimationFrame = Enemy.MOVE_ANIMATION_FRAME
+
     }
     func touchDown(atPoint pos : CGPoint) {
         for player in team {
@@ -258,6 +290,7 @@ class GameScene: SKScene {
         if stage.goal {
             stage.goalFrame -= 1
             if stage.goalFrame <= 0 {
+                stage.start = false
                 stage.goal = false
                 stage.goalFrame = Stage.FRAME
                 initilize()
@@ -274,6 +307,13 @@ class GameScene: SKScene {
                 stage.pointLabelEnemy.text = stage.pointEnemy.description
                 stage.goal = true
             }
+        }
+        
+        if stage.start {
+            enemys[0].moveAnimation3Tracking(pos: ball.sprite!.position)
+//            enemys[0].moveAnimation2Circle(currentTime: currentTime)
+            enemys[1].moveAnimation1Slide()
+            enemys[2].moveAnimation1Slide()
         }
         
         for enemy in enemys {
@@ -337,6 +377,8 @@ class GameScene: SKScene {
                 player.sprite!.position.x > ball.sprite!.position.x - Object.RANGE &&
                 player.sprite!.position.y < ball.sprite!.position.y + Object.RANGE &&
                     player.sprite!.position.y > ball.sprite!.position.y - Object.RANGE {
+                    
+                    stage.start = true
                     
                     ball.animation = true
                     ball.frame = player.frame
